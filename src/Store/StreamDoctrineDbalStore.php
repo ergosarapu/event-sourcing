@@ -27,10 +27,10 @@ use Patchlevel\EventSourcing\Store\Criteria\ArchivedCriterion;
 use Patchlevel\EventSourcing\Store\Criteria\Criteria;
 use Patchlevel\EventSourcing\Store\Criteria\EventsCriterion;
 use Patchlevel\EventSourcing\Store\Criteria\FromIndexCriterion;
-use Patchlevel\EventSourcing\Store\Criteria\FromPlayheadCriterion;
+use Patchlevel\EventSourcing\Store\Criteria\FromStreamVersionCriterion;
 use Patchlevel\EventSourcing\Store\Criteria\StreamCriterion;
 use Patchlevel\EventSourcing\Store\Header\EventIdHeader;
-use Patchlevel\EventSourcing\Store\Header\PlayheadHeader;
+use Patchlevel\EventSourcing\Store\Header\StreamVersionHeader;
 use Patchlevel\EventSourcing\Store\Header\RecordedOnHeader;
 use Patchlevel\EventSourcing\Store\Header\StreamNameHeader;
 use PDO;
@@ -164,9 +164,9 @@ final class StreamDoctrineDbalStore implements StreamStore, SubscriptionStore, D
                     $builder->andWhere('stream = :stream');
                     $builder->setParameter('stream', $criterion->streamName);
                     break;
-                case FromPlayheadCriterion::class:
-                    $builder->andWhere('playhead > :playhead');
-                    $builder->setParameter('playhead', $criterion->fromPlayhead, Types::INTEGER);
+                case FromStreamVersionCriterion::class:
+                    $builder->andWhere('stream_version > :stream_version');
+                    $builder->setParameter('stream_version', $criterion->fromStreamVersion, Types::INTEGER);
                     break;
                 case ArchivedCriterion::class:
                     $builder->andWhere('archived = :archived');
@@ -235,8 +235,8 @@ final class StreamDoctrineDbalStore implements StreamStore, SubscriptionStore, D
                         throw new MissingDataForStorage($e->name, $e);
                     }
 
-                    if ($message->hasHeader(PlayheadHeader::class)) {
-                        $parameters[] = $message->header(PlayheadHeader::class)->playhead;
+                    if ($message->hasHeader(StreamVersionHeader::class)) {
+                        $parameters[] = $message->header(StreamVersionHeader::class)->streamVersion;
                     } else {
                         $parameters[] = null;
                     }
@@ -390,7 +390,7 @@ final class StreamDoctrineDbalStore implements StreamStore, SubscriptionStore, D
         $table->addColumn('stream', Types::STRING)
             ->setLength(255)
             ->setNotnull(true);
-        $table->addColumn('playhead', Types::INTEGER)
+        $table->addColumn('stream_version', Types::INTEGER)
             ->setNotnull(false);
         $table->addColumn('event_id', Types::STRING)
             ->setLength(255)
@@ -413,8 +413,8 @@ final class StreamDoctrineDbalStore implements StreamStore, SubscriptionStore, D
 
         $table->setPrimaryKey(['id']);
         $table->addUniqueIndex(['event_id']);
-        $table->addUniqueIndex(['stream', 'playhead']);
-        $table->addIndex(['stream', 'playhead', 'archived']);
+        $table->addUniqueIndex(['stream', 'stream_version']);
+        $table->addIndex(['stream', 'stream_version', 'archived']);
     }
 
     /** @return list<object> */
@@ -423,7 +423,7 @@ final class StreamDoctrineDbalStore implements StreamStore, SubscriptionStore, D
         $filteredHeaders = [
             StreamNameHeader::class,
             EventIdHeader::class,
-            PlayheadHeader::class,
+            StreamVersionHeader::class,
             RecordedOnHeader::class,
             StreamStartHeader::class,
             ArchivedHeader::class,

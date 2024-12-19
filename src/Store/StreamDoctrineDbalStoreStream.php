@@ -16,7 +16,7 @@ use Patchlevel\EventSourcing\Message\Serializer\HeadersSerializer;
 use Patchlevel\EventSourcing\Serializer\EventSerializer;
 use Patchlevel\EventSourcing\Serializer\SerializedEvent;
 use Patchlevel\EventSourcing\Store\Header\EventIdHeader;
-use Patchlevel\EventSourcing\Store\Header\PlayheadHeader;
+use Patchlevel\EventSourcing\Store\Header\StreamVersionHeader;
 use Patchlevel\EventSourcing\Store\Header\RecordedOnHeader;
 use Patchlevel\EventSourcing\Store\Header\StreamNameHeader;
 use Traversable;
@@ -137,8 +137,8 @@ final class StreamDoctrineDbalStoreStream implements Stream, IteratorAggregate
                 ->withHeader(new RecordedOnHeader($dateTimeType->convertToPHPValue($data['recorded_on'], $platform)))
                 ->withHeader(new EventIdHeader($data['event_id']));
 
-            if ($data['playhead'] !== null) {
-                $message = $message->withHeader(new PlayheadHeader((int)$data['playhead']));
+            if ($data['stream_version'] !== null) {
+                $message = $message->withHeader(new StreamVersionHeader((int)$data['stream_version']));
             }
 
             if ($data['archived']) {

@@ -10,7 +10,7 @@ use Patchlevel\EventSourcing\Message\Serializer\HeadersSerializer;
 use Patchlevel\EventSourcing\Serializer\Encoder\Encoder;
 use Patchlevel\EventSourcing\Serializer\EventSerializer;
 use Patchlevel\EventSourcing\Store\ArchivedHeader;
-use Patchlevel\EventSourcing\Store\Header\PlayheadHeader;
+use Patchlevel\EventSourcing\Store\Header\StreamVersionHeader;
 use Patchlevel\EventSourcing\Store\Header\RecordedOnHeader;
 use Patchlevel\EventSourcing\Store\Header\StreamNameHeader;
 use Patchlevel\EventSourcing\Store\StreamStartHeader;
@@ -51,7 +51,7 @@ final class OutputStyle extends SymfonyStyle
         $customHeaders = array_filter(
             $message->headers(),
             static fn ($header) => !$header instanceof StreamNameHeader
-                && !$header instanceof PlayheadHeader
+                && !$header instanceof StreamVersionHeader
                 && !$header instanceof RecordedOnHeader
                 && !$header instanceof AggregateHeader
                 && !$header instanceof ArchivedHeader
@@ -74,8 +74,8 @@ final class OutputStyle extends SymfonyStyle
             $streamName = $message->header(StreamNameHeader::class)->streamName;
         }
 
-        if ($message->hasHeader(PlayheadHeader::class)) {
-            $playhead = $message->header(PlayheadHeader::class)->playhead;
+        if ($message->hasHeader(StreamVersionHeader::class)) {
+            $playhead = $message->header(StreamVersionHeader::class)->streamVersion;
         }
 
         if ($message->hasHeader(RecordedOnHeader::class)) {

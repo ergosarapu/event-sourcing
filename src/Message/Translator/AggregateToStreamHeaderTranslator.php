@@ -6,7 +6,7 @@ namespace Patchlevel\EventSourcing\Message\Translator;
 
 use Patchlevel\EventSourcing\Aggregate\AggregateHeader;
 use Patchlevel\EventSourcing\Message\Message;
-use Patchlevel\EventSourcing\Store\Header\PlayheadHeader;
+use Patchlevel\EventSourcing\Store\Header\StreamVersionHeader;
 use Patchlevel\EventSourcing\Store\Header\RecordedOnHeader;
 use Patchlevel\EventSourcing\Store\Header\StreamNameHeader;
 
@@ -26,7 +26,7 @@ final class AggregateToStreamHeaderTranslator implements Translator
             $message
                 ->removeHeader(AggregateHeader::class)
                 ->withHeader(new StreamNameHeader($aggregateHeader->streamName()))
-                ->withHeader(new PlayheadHeader($aggregateHeader->playhead))
+                ->withHeader(new StreamVersionHeader($aggregateHeader->playhead))
                 ->withHeader(new RecordedOnHeader($aggregateHeader->recordedOn)),
         ];
     }

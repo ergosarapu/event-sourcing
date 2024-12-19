@@ -14,8 +14,9 @@ use Patchlevel\EventSourcing\Store\Criteria\ArchivedCriterion;
 use Patchlevel\EventSourcing\Store\Criteria\Criteria;
 use Patchlevel\EventSourcing\Store\Criteria\FromIndexCriterion;
 use Patchlevel\EventSourcing\Store\Criteria\FromPlayheadCriterion;
+use Patchlevel\EventSourcing\Store\Criteria\FromStreamVersionCriterion;
 use Patchlevel\EventSourcing\Store\Criteria\StreamCriterion;
-use Patchlevel\EventSourcing\Store\Header\PlayheadHeader;
+use Patchlevel\EventSourcing\Store\Header\StreamVersionHeader;
 use Patchlevel\EventSourcing\Store\Header\StreamNameHeader;
 
 use function array_filter;
@@ -195,14 +196,24 @@ final class InMemoryStore implements StreamStore
                             try {
                                 $playhead = $message->header(AggregateHeader::class)->playhead;
                             } catch (HeaderNotFound) {
-                                try {
-                                    $playhead = $message->header(PlayheadHeader::class)->playhead;
-                                } catch (HeaderNotFound) {
-                                    return false;
-                                }
+                                return false;
                             }
 
                             if ($playhead < $criterion->fromPlayhead) {
+                                return false;
+                            }
+
+                            break;
+                        case FromStreamVersionCriterion::class:
+                            $streamVersion = null;
+
+                            try {
+                                $streamVersion = $message->header(StreamVersionHeader::class)->streamVersion;
+                            } catch (HeaderNotFound) {
+                                return false;
+                            }
+
+                            if ($streamVersion < $criterion->fromStreamVersion) {
                                 return false;
                             }
 

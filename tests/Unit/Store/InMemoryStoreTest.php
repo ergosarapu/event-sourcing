@@ -15,7 +15,7 @@ use Patchlevel\EventSourcing\Store\Criteria\Criteria;
 use Patchlevel\EventSourcing\Store\Criteria\FromIndexCriterion;
 use Patchlevel\EventSourcing\Store\Criteria\FromPlayheadCriterion;
 use Patchlevel\EventSourcing\Store\Criteria\StreamCriterion;
-use Patchlevel\EventSourcing\Store\Header\PlayheadHeader;
+use Patchlevel\EventSourcing\Store\Header\StreamVersionHeader;
 use Patchlevel\EventSourcing\Store\Header\StreamNameHeader;
 use Patchlevel\EventSourcing\Store\InMemoryStore;
 use Patchlevel\EventSourcing\Store\UnsupportedCriterion;
@@ -133,7 +133,7 @@ final class InMemoryStoreTest extends TestCase
             ->withHeader(new AggregateHeader('foo', '1', 2, new DateTimeImmutable()));
         $message3 = (new Message(new ProfileVisited(ProfileId::fromString('3'))))
             ->withHeader(new StreamNameHeader('foo-1'))
-            ->withHeader(new PlayheadHeader(3));
+            ->withHeader(new StreamVersionHeader(3));
         $message4 = (new Message(new ProfileVisited(ProfileId::fromString('3'))));
 
         $store = new InMemoryStore([$message1, $message2, $message3, $message4]);
@@ -153,7 +153,7 @@ final class InMemoryStoreTest extends TestCase
             ->withHeader(new AggregateHeader('foo', '1', 2, new DateTimeImmutable()));
         $message3 = (new Message(new ProfileVisited(ProfileId::fromString('3'))))
             ->withHeader(new StreamNameHeader('foo-1'))
-            ->withHeader(new PlayheadHeader(3));
+            ->withHeader(new StreamVersionHeader(3));
         $message4 = (new Message(new ProfileVisited(ProfileId::fromString('3'))));
 
         $store = new InMemoryStore([$message1, $message2, $message3, $message4]);

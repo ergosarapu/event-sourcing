@@ -13,7 +13,7 @@ use Patchlevel\EventSourcing\Serializer\DefaultEventSerializer;
 use Patchlevel\EventSourcing\Store\Criteria\Criteria;
 use Patchlevel\EventSourcing\Store\Criteria\StreamCriterion;
 use Patchlevel\EventSourcing\Store\Header\EventIdHeader;
-use Patchlevel\EventSourcing\Store\Header\PlayheadHeader;
+use Patchlevel\EventSourcing\Store\Header\StreamVersionHeader;
 use Patchlevel\EventSourcing\Store\Header\RecordedOnHeader;
 use Patchlevel\EventSourcing\Store\Header\StreamNameHeader;
 use Patchlevel\EventSourcing\Store\StreamDoctrineDbalStore;
@@ -67,11 +67,11 @@ final class StreamDoctrineDbalStoreTest extends TestCase
         $messages = [
             Message::create(new ProfileCreated($profileId, 'test'))
                 ->withHeader(new StreamNameHeader(sprintf('profile-%s', $profileId->toString())))
-                ->withHeader(new PlayheadHeader(1))
+                ->withHeader(new StreamVersionHeader(1))
                 ->withHeader(new RecordedOnHeader(new DateTimeImmutable('2020-01-01 00:00:00'))),
             Message::create(new ProfileCreated($profileId, 'test'))
                 ->withHeader(new StreamNameHeader(sprintf('profile-%s', $profileId->toString())))
-                ->withHeader(new PlayheadHeader(2))
+                ->withHeader(new StreamVersionHeader(2))
                 ->withHeader(new RecordedOnHeader(new DateTimeImmutable('2020-01-02 00:00:00'))),
         ];
 
@@ -151,11 +151,11 @@ final class StreamDoctrineDbalStoreTest extends TestCase
         $messages = [
             Message::create(new ProfileCreated($profileId, 'test'))
                 ->withHeader(new StreamNameHeader(sprintf('profile-%s', $profileId->toString())))
-                ->withHeader(new PlayheadHeader(1))
+                ->withHeader(new StreamVersionHeader(1))
                 ->withHeader(new RecordedOnHeader(new DateTimeImmutable('2020-01-01 00:00:00'))),
             Message::create(new ProfileCreated($profileId, 'test'))
                 ->withHeader(new StreamNameHeader(sprintf('profile-%s', $profileId->toString())))
-                ->withHeader(new PlayheadHeader(2))
+                ->withHeader(new StreamVersionHeader(2))
                 ->withHeader(new RecordedOnHeader(new DateTimeImmutable('2020-01-02 00:00:00'))),
         ];
 
@@ -198,12 +198,12 @@ final class StreamDoctrineDbalStoreTest extends TestCase
         $messages = [
             Message::create(new ProfileCreated($profileId, 'test'))
                 ->withHeader(new StreamNameHeader(sprintf('profile-%s', $profileId->toString())))
-                ->withHeader(new PlayheadHeader(1))
+                ->withHeader(new StreamVersionHeader(1))
                 ->withHeader(new EventIdHeader('1'))
                 ->withHeader(new RecordedOnHeader(new DateTimeImmutable('2020-01-01 00:00:00'))),
             Message::create(new ProfileCreated($profileId, 'test'))
                 ->withHeader(new StreamNameHeader(sprintf('profile-%s', $profileId->toString())))
-                ->withHeader(new PlayheadHeader(2))
+                ->withHeader(new StreamVersionHeader(2))
                 ->withHeader(new EventIdHeader('2'))
                 ->withHeader(new RecordedOnHeader(new DateTimeImmutable('2020-01-02 00:00:00')))
                 ->withHeader(new StreamStartHeader()),
@@ -254,11 +254,11 @@ final class StreamDoctrineDbalStoreTest extends TestCase
         $messages = [
             Message::create(new ProfileCreated($profileId, 'test'))
                 ->withHeader(new StreamNameHeader(sprintf('profile-%s', $profileId->toString())))
-                ->withHeader(new PlayheadHeader(1))
+                ->withHeader(new StreamVersionHeader(1))
                 ->withHeader(new RecordedOnHeader(new DateTimeImmutable('2020-01-01 00:00:00'))),
             Message::create(new ProfileCreated($profileId, 'test'))
                 ->withHeader(new StreamNameHeader(sprintf('profile-%s', $profileId->toString())))
-                ->withHeader(new PlayheadHeader(1))
+                ->withHeader(new StreamVersionHeader(1))
                 ->withHeader(new RecordedOnHeader(new DateTimeImmutable('2020-01-01 00:00:00'))),
         ];
 
@@ -294,7 +294,7 @@ final class StreamDoctrineDbalStoreTest extends TestCase
         for ($i = 1; $i <= 10000; $i++) {
             $messages[] = Message::create(new ProfileCreated($profileId, 'test'))
                 ->withHeader(new StreamNameHeader(sprintf('profile-%s', $profileId->toString())))
-                ->withHeader(new PlayheadHeader($i))
+                ->withHeader(new StreamVersionHeader($i))
                 ->withHeader(new RecordedOnHeader(new DateTimeImmutable('2020-01-01 00:00:00')));
         }
 
@@ -312,7 +312,7 @@ final class StreamDoctrineDbalStoreTest extends TestCase
 
         $message = Message::create(new ProfileCreated($profileId, 'test'))
             ->withHeader(new StreamNameHeader(sprintf('profile-%s', $profileId->toString())))
-            ->withHeader(new PlayheadHeader(1))
+            ->withHeader(new StreamVersionHeader(1))
             ->withHeader(new RecordedOnHeader(new DateTimeImmutable('2020-01-01 00:00:00')));
 
         $this->store->save($message);
@@ -335,8 +335,8 @@ final class StreamDoctrineDbalStoreTest extends TestCase
                 $loadedMessage->header(StreamNameHeader::class)->streamName,
             );
             self::assertEquals(
-                $message->header(PlayheadHeader::class)->playhead,
-                $loadedMessage->header(PlayheadHeader::class)->playhead,
+                $message->header(StreamVersionHeader::class)->playhead,
+                $loadedMessage->header(StreamVersionHeader::class)->playhead,
             );
             self::assertEquals(
                 $message->header(RecordedOnHeader::class)->recordedOn,
@@ -355,11 +355,11 @@ final class StreamDoctrineDbalStoreTest extends TestCase
         $messages = [
             Message::create(new ProfileCreated($profileId1, 'test'))
                 ->withHeader(new StreamNameHeader(sprintf('profile-%s', $profileId1->toString())))
-                ->withHeader(new PlayheadHeader(1))
+                ->withHeader(new StreamVersionHeader(1))
                 ->withHeader(new RecordedOnHeader(new DateTimeImmutable('2020-01-01 00:00:00'))),
             Message::create(new ProfileCreated($profileId2, 'test'))
                 ->withHeader(new StreamNameHeader(sprintf('profile-%s', $profileId2->toString())))
-                ->withHeader(new PlayheadHeader(1))
+                ->withHeader(new StreamVersionHeader(1))
                 ->withHeader(new RecordedOnHeader(new DateTimeImmutable('2020-01-01 00:00:00'))),
             Message::create(new ExternEvent('test message'))
                 ->withHeader(new StreamNameHeader('foo')),
@@ -387,11 +387,11 @@ final class StreamDoctrineDbalStoreTest extends TestCase
         $messages = [
             Message::create(new ProfileCreated($profileId, 'test'))
                 ->withHeader(new StreamNameHeader(sprintf('profile-%s', $profileId->toString())))
-                ->withHeader(new PlayheadHeader(1))
+                ->withHeader(new StreamVersionHeader(1))
                 ->withHeader(new RecordedOnHeader(new DateTimeImmutable('2020-01-01 00:00:00'))),
             Message::create(new ProfileCreated($profileId, 'test'))
                 ->withHeader(new StreamNameHeader(sprintf('profile-%s', $profileId->toString())))
-                ->withHeader(new PlayheadHeader(2))
+                ->withHeader(new StreamVersionHeader(2))
                 ->withHeader(new RecordedOnHeader(new DateTimeImmutable('2020-01-01 00:00:00'))),
             Message::create(new ExternEvent('test message'))
                 ->withHeader(new StreamNameHeader('foo')),
@@ -414,11 +414,11 @@ final class StreamDoctrineDbalStoreTest extends TestCase
         $messages = [
             Message::create(new ProfileCreated($profileId, 'test'))
                 ->withHeader(new StreamNameHeader(sprintf('profile-%s', $profileId->toString())))
-                ->withHeader(new PlayheadHeader(1))
+                ->withHeader(new StreamVersionHeader(1))
                 ->withHeader(new RecordedOnHeader(new DateTimeImmutable('2020-01-01 00:00:00'))),
             Message::create(new ProfileCreated($profileId, 'test'))
                 ->withHeader(new StreamNameHeader(sprintf('profile-%s', $profileId->toString())))
-                ->withHeader(new PlayheadHeader(2))
+                ->withHeader(new StreamVersionHeader(2))
                 ->withHeader(new RecordedOnHeader(new DateTimeImmutable('2020-01-01 00:00:00'))),
             Message::create(new ExternEvent('test message'))
                 ->withHeader(new StreamNameHeader('foo')),

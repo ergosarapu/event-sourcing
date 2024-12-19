@@ -11,8 +11,8 @@ final class CriteriaBuilder
     private string|null $aggregateId = null;
     private int|null $fromIndex = null;
     private int|null $fromPlayhead = null;
+    private int|null $fromStreamVersion = null;
     private bool|null $archived = null;
-
     /** @var list<string>|null */
     private array|null $events = null;
 
@@ -20,6 +20,14 @@ final class CriteriaBuilder
     public function streamName(string|null $streamName): self
     {
         $this->streamName = $streamName;
+
+        return $this;
+    }
+
+    /** @experimental */
+    public function fromStreamVersion(int|null $streamVersion): self
+    {
+        $this->fromStreamVersion = $streamVersion;
 
         return $this;
     }
@@ -73,6 +81,10 @@ final class CriteriaBuilder
 
         if ($this->streamName !== null) {
             $criteria[] = new StreamCriterion($this->streamName);
+        }
+
+        if ($this->fromStreamVersion !== null) {
+            $criteria[] = new FromStreamVersionCriterion($this->fromStreamVersion);
         }
 
         if ($this->aggregateName !== null) {

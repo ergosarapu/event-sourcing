@@ -7,7 +7,7 @@ namespace Patchlevel\EventSourcing\Metadata\Message;
 use Patchlevel\EventSourcing\Aggregate\AggregateHeader;
 use Patchlevel\EventSourcing\Store\ArchivedHeader;
 use Patchlevel\EventSourcing\Store\Header\EventIdHeader;
-use Patchlevel\EventSourcing\Store\Header\PlayheadHeader;
+use Patchlevel\EventSourcing\Store\Header\StreamVersionHeader;
 use Patchlevel\EventSourcing\Store\Header\RecordedOnHeader;
 use Patchlevel\EventSourcing\Store\Header\StreamNameHeader;
 use Patchlevel\EventSourcing\Store\StreamStartHeader;
@@ -77,7 +77,7 @@ final class MessageHeaderRegistry
     {
         $internalHeaders = [
             'streamName' => StreamNameHeader::class,
-            'playhead' => PlayheadHeader::class,
+            'playhead' => StreamVersionHeader::class,
             'recordedOn' => RecordedOnHeader::class,
             'aggregate' => AggregateHeader::class,
             'archived' => ArchivedHeader::class,

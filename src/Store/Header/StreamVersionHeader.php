@@ -8,11 +8,11 @@ namespace Patchlevel\EventSourcing\Store\Header;
  * @psalm-immutable
  * @experimental
  */
-final class PlayheadHeader
+final class StreamVersionHeader
 {
-    /** @param positive-int $playhead */
+    /** @param positive-int $streamVersion */
     public function __construct(
-        public readonly int $playhead,
+        public readonly int $streamVersion,
     ) {
     }
 }

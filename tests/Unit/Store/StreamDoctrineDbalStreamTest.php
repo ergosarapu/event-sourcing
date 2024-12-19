@@ -13,7 +13,7 @@ use Patchlevel\EventSourcing\Message\Serializer\HeadersSerializer;
 use Patchlevel\EventSourcing\Serializer\EventSerializer;
 use Patchlevel\EventSourcing\Serializer\SerializedEvent;
 use Patchlevel\EventSourcing\Store\Header\EventIdHeader;
-use Patchlevel\EventSourcing\Store\Header\PlayheadHeader;
+use Patchlevel\EventSourcing\Store\Header\StreamVersionHeader;
 use Patchlevel\EventSourcing\Store\Header\RecordedOnHeader;
 use Patchlevel\EventSourcing\Store\Header\StreamNameHeader;
 use Patchlevel\EventSourcing\Store\StreamClosed;
@@ -80,7 +80,7 @@ final class StreamDoctrineDbalStreamTest extends TestCase
         );
         $message = Message::create($event)
             ->withHeader(new StreamNameHeader('profile-1'))
-            ->withHeader(new PlayheadHeader(1))
+            ->withHeader(new StreamVersionHeader(1))
             ->withHeader(new EventIdHeader('1'))
             ->withHeader(new RecordedOnHeader(new DateTimeImmutable('2022-10-10 10:10:10')));
 
@@ -167,7 +167,7 @@ final class StreamDoctrineDbalStreamTest extends TestCase
         $messages = [
             Message::create($event)
                 ->withHeader(new StreamNameHeader('profile-1'))
-                ->withHeader(new PlayheadHeader(1))
+                ->withHeader(new StreamVersionHeader(1))
                 ->withHeader(new EventIdHeader('1'))
                 ->withHeader(new RecordedOnHeader(new DateTimeImmutable('2022-10-10 10:10:10'))),
             Message::create($event)
@@ -176,7 +176,7 @@ final class StreamDoctrineDbalStreamTest extends TestCase
                 ->withHeader(new RecordedOnHeader(new DateTimeImmutable('2022-10-10 10:10:10'))),
             Message::create($event)
                 ->withHeader(new StreamNameHeader('profile-3'))
-                ->withHeader(new PlayheadHeader(1))
+                ->withHeader(new StreamVersionHeader(1))
                 ->withHeader(new EventIdHeader('3'))
                 ->withHeader(new RecordedOnHeader(new DateTimeImmutable('2022-10-10 10:10:10'))),
         ];
@@ -258,7 +258,7 @@ final class StreamDoctrineDbalStreamTest extends TestCase
         );
         $message = Message::create($event)
             ->withHeader(new StreamNameHeader('profile-1'))
-            ->withHeader(new PlayheadHeader(1))
+            ->withHeader(new StreamVersionHeader(1))
             ->withHeader(new EventIdHeader('1'))
             ->withHeader(new RecordedOnHeader(new DateTimeImmutable('2022-10-10 10:10:10')));
 
@@ -319,7 +319,7 @@ final class StreamDoctrineDbalStreamTest extends TestCase
         );
         $message = Message::create($event)
             ->withHeader(new StreamNameHeader('profile-1'))
-            ->withHeader(new PlayheadHeader(1))
+            ->withHeader(new StreamVersionHeader(1))
             ->withHeader(new EventIdHeader('1'))
             ->withHeader(new RecordedOnHeader(new DateTimeImmutable('2022-10-10 10:10:10')));
 

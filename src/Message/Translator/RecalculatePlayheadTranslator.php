@@ -6,7 +6,7 @@ namespace Patchlevel\EventSourcing\Message\Translator;
 
 use Patchlevel\EventSourcing\Aggregate\AggregateHeader;
 use Patchlevel\EventSourcing\Message\Message;
-use Patchlevel\EventSourcing\Store\Header\PlayheadHeader;
+use Patchlevel\EventSourcing\Store\Header\StreamVersionHeader;
 use Patchlevel\EventSourcing\Store\Header\StreamNameHeader;
 
 use function array_key_exists;
@@ -19,13 +19,15 @@ final class RecalculatePlayheadTranslator implements Translator
     /** @return list<Message> */
     public function __invoke(Message $message): array
     {
-        if ($message->hasHeader(StreamNameHeader::class) && $message->hasHeader(PlayheadHeader::class)) {
+        if ($message->hasHeader(StreamNameHeader::class) && $message->hasHeader(StreamVersionHeader::class)) {
             $streamName = $message->header(StreamNameHeader::class)->streamName;
 
-            $playhead = $this->nextPlayhead($streamName);
-
             return [
-                $message->withHeader(new PlayheadHeader($playhead)),
+                $message->withHeader(
+                    new StreamVersionHeader(
+                        $this->nextNumber($streamName),
+                    ),
+                ),
             ];
         }
 
@@ -36,7 +38,7 @@ final class RecalculatePlayheadTranslator implements Translator
                 $message->withHeader(new AggregateHeader(
                     $header->aggregateName,
                     $header->aggregateId,
-                    $this->nextPlayhead($header->streamName()),
+                    $this->nextNumber($header->streamName()),
                     $header->recordedOn,
                 )),
             ];
@@ -51,7 +53,7 @@ final class RecalculatePlayheadTranslator implements Translator
     }
 
     /** @return positive-int */
-    private function nextPlayhead(string $stream): int
+    private function nextNumber(string $stream): int
     {
         if (!array_key_exists($stream, $this->index)) {
             $this->index[$stream] = 1;

@@ -26,7 +26,7 @@ use Patchlevel\EventSourcing\Serializer\EventSerializer;
 use Patchlevel\EventSourcing\Serializer\SerializedEvent;
 use Patchlevel\EventSourcing\Store\Criteria\CriteriaBuilder;
 use Patchlevel\EventSourcing\Store\Header\EventIdHeader;
-use Patchlevel\EventSourcing\Store\Header\PlayheadHeader;
+use Patchlevel\EventSourcing\Store\Header\StreamVersionHeader;
 use Patchlevel\EventSourcing\Store\Header\RecordedOnHeader;
 use Patchlevel\EventSourcing\Store\Header\StreamNameHeader;
 use Patchlevel\EventSourcing\Store\InvalidStreamName;
@@ -463,7 +463,7 @@ final class StreamDoctrineDbalStoreTest extends TestCase
         self::assertInstanceOf(Message::class, $message);
         self::assertInstanceOf(ProfileCreated::class, $message->event());
         self::assertSame('profile-1', $message->header(StreamNameHeader::class)->streamName);
-        self::assertSame(1, $message->header(PlayheadHeader::class)->playhead);
+        self::assertSame(1, $message->header(StreamVersionHeader::class)->playhead);
         self::assertEquals(
             new DateTimeImmutable('2021-02-17 10:00:00'),
             $message->header(RecordedOnHeader::class)->recordedOn,
@@ -567,7 +567,7 @@ final class StreamDoctrineDbalStoreTest extends TestCase
         self::assertInstanceOf(Message::class, $message);
         self::assertInstanceOf(ProfileCreated::class, $message->event());
         self::assertSame('profile-1', $message->header(StreamNameHeader::class)->streamName);
-        self::assertSame(1, $message->header(PlayheadHeader::class)->playhead);
+        self::assertSame(1, $message->header(StreamVersionHeader::class)->playhead);
         self::assertEquals(
             new DateTimeImmutable('2021-02-17 10:00:00'),
             $message->header(RecordedOnHeader::class)->recordedOn,
@@ -582,7 +582,7 @@ final class StreamDoctrineDbalStoreTest extends TestCase
         self::assertInstanceOf(Message::class, $message);
         self::assertInstanceOf(ProfileEmailChanged::class, $message->event());
         self::assertSame('profile-1', $message->header(StreamNameHeader::class)->streamName);
-        self::assertSame(2, $message->header(PlayheadHeader::class)->playhead);
+        self::assertSame(2, $message->header(StreamVersionHeader::class)->playhead);
         self::assertEquals(
             new DateTimeImmutable('2021-02-17 11:00:00'),
             $message->header(RecordedOnHeader::class)->recordedOn,
@@ -835,7 +835,7 @@ final class StreamDoctrineDbalStoreTest extends TestCase
         $message = Message::create(new ProfileCreated(ProfileId::fromString('1'), Email::fromString('s')))
             ->withHeader(new StreamNameHeader('profile-1'))
             ->withHeader(new EventIdHeader('1'))
-            ->withHeader(new PlayheadHeader(1))
+            ->withHeader(new StreamVersionHeader(1))
             ->withHeader(new RecordedOnHeader($recordedOn));
 
         $eventSerializer = $this->prophesize(EventSerializer::class);
@@ -909,12 +909,12 @@ final class StreamDoctrineDbalStoreTest extends TestCase
         $recordedOn = new DateTimeImmutable();
         $message1 = Message::create(new ProfileCreated(ProfileId::fromString('1'), Email::fromString('s')))
             ->withHeader(new StreamNameHeader('profile-1'))
-            ->withHeader(new PlayheadHeader(1))
+            ->withHeader(new StreamVersionHeader(1))
             ->withHeader(new RecordedOnHeader($recordedOn))
             ->withHeader(new EventIdHeader('1'));
         $message2 = Message::create(new ProfileEmailChanged(ProfileId::fromString('1'), Email::fromString('d')))
             ->withHeader(new StreamNameHeader('profile-1'))
-            ->withHeader(new PlayheadHeader(2))
+            ->withHeader(new StreamVersionHeader(2))
             ->withHeader(new RecordedOnHeader($recordedOn))
             ->withHeader(new EventIdHeader('2'));
 
@@ -983,12 +983,12 @@ final class StreamDoctrineDbalStoreTest extends TestCase
         $recordedOn = new DateTimeImmutable();
         $message1 = Message::create(new ProfileCreated(ProfileId::fromString('1'), Email::fromString('s')))
             ->withHeader(new StreamNameHeader('profile-1'))
-            ->withHeader(new PlayheadHeader(1))
+            ->withHeader(new StreamVersionHeader(1))
             ->withHeader(new EventIdHeader('1'))
             ->withHeader(new RecordedOnHeader($recordedOn));
         $message2 = Message::create(new ProfileCreated(ProfileId::fromString('1'), Email::fromString('s')))
             ->withHeader(new StreamNameHeader('profile-1'))
-            ->withHeader(new PlayheadHeader(1))
+            ->withHeader(new StreamVersionHeader(1))
             ->withHeader(new EventIdHeader('2'))
             ->withHeader(new RecordedOnHeader($recordedOn));
 
@@ -1058,7 +1058,7 @@ final class StreamDoctrineDbalStoreTest extends TestCase
         for ($i = 1; $i <= 10000; $i++) {
             $messages[] = Message::create(new ProfileEmailChanged(ProfileId::fromString('1'), Email::fromString('s')))
                 ->withHeader(new StreamNameHeader('profile-1'))
-                ->withHeader(new PlayheadHeader($i))
+                ->withHeader(new StreamVersionHeader($i))
                 ->withHeader(new RecordedOnHeader($recordedOn));
         }
 
@@ -1099,7 +1099,7 @@ final class StreamDoctrineDbalStoreTest extends TestCase
         $recordedOn = new DateTimeImmutable();
         $message = Message::create(new ProfileCreated(ProfileId::fromString('1'), Email::fromString('s')))
             ->withHeader(new StreamNameHeader('profile-1'))
-            ->withHeader(new PlayheadHeader(1))
+            ->withHeader(new StreamVersionHeader(1))
             ->withHeader(new RecordedOnHeader($recordedOn))
             ->withHeader(new EventIdHeader('1'))
             ->withHeaders($customHeaders);
@@ -1433,14 +1433,14 @@ final class StreamDoctrineDbalStoreTest extends TestCase
         $recordedOn = new DateTimeImmutable();
         $message1 = Message::create(new ProfileCreated(ProfileId::fromString('1'), Email::fromString('s')))
             ->withHeader(new StreamNameHeader('profile-1'))
-            ->withHeader(new PlayheadHeader(5))
+            ->withHeader(new StreamVersionHeader(5))
             ->withHeader(new RecordedOnHeader($recordedOn))
             ->withHeader(new EventIdHeader('1'))
             ->withHeader(new StreamStartHeader());
 
         $message2 = Message::create(new ProfileEmailChanged(ProfileId::fromString('2'), Email::fromString('d')))
             ->withHeader(new StreamNameHeader('profile-2'))
-            ->withHeader(new PlayheadHeader(42))
+            ->withHeader(new StreamVersionHeader(42))
             ->withHeader(new RecordedOnHeader($recordedOn))
             ->withHeader(new EventIdHeader('2'))
             ->withHeader(new StreamStartHeader());
@@ -1540,14 +1540,14 @@ final class StreamDoctrineDbalStoreTest extends TestCase
         $recordedOn = new DateTimeImmutable();
         $message1 = Message::create(new ProfileCreated(ProfileId::fromString('1'), Email::fromString('s')))
             ->withHeader(new StreamNameHeader('profile-1'))
-            ->withHeader(new PlayheadHeader(5))
+            ->withHeader(new StreamVersionHeader(5))
             ->withHeader(new RecordedOnHeader($recordedOn))
             ->withHeader(new EventIdHeader('3'))
             ->withHeader(new StreamStartHeader());
 
         $message2 = Message::create(new ProfileEmailChanged(ProfileId::fromString('1'), Email::fromString('d')))
             ->withHeader(new StreamNameHeader('profile-1'))
-            ->withHeader(new PlayheadHeader(42))
+            ->withHeader(new StreamVersionHeader(42))
             ->withHeader(new RecordedOnHeader($recordedOn))
             ->withHeader(new EventIdHeader('7'))
             ->withHeader(new StreamStartHeader());

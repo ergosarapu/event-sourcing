@@ -17,7 +17,7 @@ use Patchlevel\EventSourcing\Snapshot\SnapshotNotFound;
 use Patchlevel\EventSourcing\Snapshot\SnapshotStore;
 use Patchlevel\EventSourcing\Snapshot\SnapshotVersionInvalid;
 use Patchlevel\EventSourcing\Store\Criteria\CriteriaBuilder;
-use Patchlevel\EventSourcing\Store\Header\PlayheadHeader;
+use Patchlevel\EventSourcing\Store\Header\StreamVersionHeader;
 use Patchlevel\EventSourcing\Store\Header\RecordedOnHeader;
 use Patchlevel\EventSourcing\Store\Header\StreamNameHeader;
 use Patchlevel\EventSourcing\Store\Store;
@@ -144,7 +144,7 @@ final class DefaultRepository implements Repository
             }
 
             if ($this->useStreamHeader) {
-                $playhead = $firstMessage->header(PlayheadHeader::class)->playhead;
+                $playhead = $firstMessage->header(StreamVersionHeader::class)->streamVersion;
             } else {
                 $playhead = $firstMessage->header(AggregateHeader::class)->playhead;
             }
@@ -259,7 +259,7 @@ final class DefaultRepository implements Repository
                     if ($streamName !== null) {
                         $message = $message
                             ->withHeader(new StreamNameHeader($streamName))
-                            ->withHeader(new PlayheadHeader(++$playhead))
+                            ->withHeader(new StreamVersionHeader(++$playhead))
                             ->withHeader(new RecordedOnHeader($clock->now()));
                     } else {
                         $message = $message->withHeader(
@@ -339,7 +339,7 @@ final class DefaultRepository implements Repository
         if ($this->useStreamHeader) {
             $criteria = (new CriteriaBuilder())
                 ->streamName(StreamNameTranslator::streamName($this->metadata->name, $id->toString()))
-                ->fromPlayhead($aggregate->playhead())
+                ->fromStreamVersion($aggregate->playhead())
                 ->build();
         } else {
             $criteria = (new CriteriaBuilder())
