@@ -261,4 +261,4 @@ And if the version is no longer correct and the snapshot is therefore invalid, t
 * [How to define aggregates](aggregate.md)
 * [How to store and load aggregates](repository.md)
 * [How to split streams](split_stream.md)
-* [How to work with personal data](personal_data.md)
+* [How to work with personal data](sensitive_data.md)

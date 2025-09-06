@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Patchlevel\EventSourcing\Tests\Integration\PersonalData\Events;
+namespace Patchlevel\EventSourcing\Tests\Integration\SensitiveData\Events;
 
 use Patchlevel\EventSourcing\Attribute\Event;
-use Patchlevel\EventSourcing\Tests\Integration\PersonalData\ProfileId;
+use Patchlevel\EventSourcing\Tests\Integration\SensitiveData\ProfileId;
 use Patchlevel\Hydrator\Attribute\DataSubjectId;
-use Patchlevel\Hydrator\Attribute\PersonalData;
+use Patchlevel\Hydrator\Attribute\SensitiveData;
 
 #[Event('profile.created')]
 final class ProfileCreated
@@ -15,7 +15,7 @@ final class ProfileCreated
     public function __construct(
         #[DataSubjectId]
         public ProfileId $profileId,
-        #[PersonalData(fallback: 'unknown')]
+        #[SensitiveData(fallback: 'unknown')]
         public string $name,
     ) {
     }

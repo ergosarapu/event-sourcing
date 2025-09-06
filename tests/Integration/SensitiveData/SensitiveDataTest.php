@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Patchlevel\EventSourcing\Tests\Integration\PersonalData;
+namespace Patchlevel\EventSourcing\Tests\Integration\SensitiveData;
 
 use Doctrine\DBAL\Connection;
 use Patchlevel\EventSourcing\Cryptography\DoctrineCipherKeyStore;
@@ -19,13 +19,13 @@ use Patchlevel\EventSourcing\Subscription\Engine\StoreMessageLoader;
 use Patchlevel\EventSourcing\Subscription\Store\DoctrineSubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Subscriber\MetadataSubscriberAccessorRepository;
 use Patchlevel\EventSourcing\Tests\DbalManager;
-use Patchlevel\EventSourcing\Tests\Integration\PersonalData\Processor\DeletePersonalDataProcessor;
-use Patchlevel\Hydrator\Cryptography\PersonalDataPayloadCryptographer;
+use Patchlevel\EventSourcing\Tests\Integration\SensitiveData\Processor\DeletePersonalDataProcessor;
+use Patchlevel\Hydrator\Cryptography\SensitiveDataPayloadCryptographer;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 
 #[CoversNothing]
-final class PersonalDataTest extends TestCase
+final class SensitiveDataTest extends TestCase
 {
     private Connection $connection;
 
@@ -42,7 +42,7 @@ final class PersonalDataTest extends TestCase
     public function testSuccessfulWithEvent(): void
     {
         $cipherKeyStore = new DoctrineCipherKeyStore($this->connection);
-        $cryptographer = PersonalDataPayloadCryptographer::createWithOpenssl($cipherKeyStore);
+        $cryptographer = SensitiveDataPayloadCryptographer::createWithOpenssl($cipherKeyStore);
 
         $store = new StreamDoctrineDbalStore(
             $this->connection,
@@ -91,7 +91,7 @@ final class PersonalDataTest extends TestCase
     public function testRemoveKeyWithEvent(): void
     {
         $cipherKeyStore = new DoctrineCipherKeyStore($this->connection);
-        $cryptographer = PersonalDataPayloadCryptographer::createWithOpenssl($cipherKeyStore);
+        $cryptographer = SensitiveDataPayloadCryptographer::createWithOpenssl($cipherKeyStore);
 
         $subscriptionStore = new DoctrineSubscriptionStore(
             $this->connection,
@@ -166,7 +166,7 @@ final class PersonalDataTest extends TestCase
     public function testRemoveKeyWithEventAndSnapshot(): void
     {
         $cipherKeyStore = new DoctrineCipherKeyStore($this->connection);
-        $cryptographer = PersonalDataPayloadCryptographer::createWithOpenssl($cipherKeyStore);
+        $cryptographer = SensitiveDataPayloadCryptographer::createWithOpenssl($cipherKeyStore);
 
         $subscriptionStore = new DoctrineSubscriptionStore(
             $this->connection,

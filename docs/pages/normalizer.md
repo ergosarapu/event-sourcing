@@ -101,7 +101,7 @@ final class CreateHotel
 ```
 !!! note
 
-    If you have personal data, you can use [crypto-shredding](personal_data.md).
+    If you have personal data, you can use [crypto-shredding](sensitive_data.md).
     
 ### Aggregate
 
@@ -459,4 +459,4 @@ final class DTO
 * [How to define aggregates](aggregate.md)
 * [How to define events](events.md)
 * [How to snapshot aggregates](snapshots.md)
-* [How to work with personal data](personal_data.md)
+* [How to work with personal data](sensitive_data.md)

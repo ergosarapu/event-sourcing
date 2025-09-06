@@ -1,4 +1,4 @@
-# Personal Data (GDPR)
+# Sensitive Data
 
 According to GDPR, personal data must be able to be deleted upon request.
 But here we have the problem that our events are immutable and we cannot easily manipulate the event store.
@@ -43,21 +43,21 @@ final class EmailChanged
 
     You can use the `DataSubjectId` in aggregates for snapshots too.
     
-### PersonalData
+### SensitiveData
 
-Next, you have to mark the properties that should be encrypted with the `#[PersonalData]` attribute.
+Next, you have to mark the properties that should be encrypted with the `#[SensitiveData]` attribute.
 
 ```php
 use Patchlevel\EventSourcing\Identifier\Uuid;
 use Patchlevel\Hydrator\Attribute\DataSubjectId;
-use Patchlevel\Hydrator\Attribute\PersonalData;
+use Patchlevel\Hydrator\Attribute\SensitiveData;
 
 final class EmailChanged
 {
     public function __construct(
         #[DataSubjectId]
         public readonly Uuid $profileId,
-        #[PersonalData]
+        #[SensitiveData]
         public readonly string|null $email,
     ) {
     }
@@ -65,23 +65,23 @@ final class EmailChanged
 ```
 !!! tip
 
-    You can use the `PersonalData` in aggregates for snapshots too.
+    You can use the `SensitiveData` in aggregates for snapshots too.
     
 If the information could not be decrypted, then a fallback value will be used.
 The default fallback value is `null`.
 You can change this by setting the `fallback` parameter or using the `fallbackCallable` parameter.
 
 ```php
-use Patchlevel\Hydrator\Attribute\PersonalData;
+use Patchlevel\Hydrator\Attribute\SensitiveData;
 
 final class ProfileChanged
 {
     public function __construct(
         #[DataSubjectId]
         public readonly Uuid $profileId,
-        #[PersonalData(fallback: 'unknown')]
+        #[SensitiveData(fallback: 'unknown')]
         public readonly string $name,
-        #[PersonalData(fallbackCallable: [self::class, 'createAnonymousEmail'])]
+        #[SensitiveData(fallbackCallable: [self::class, 'createAnonymousEmail'])]
         public readonly string $email,
     ) {
     }
@@ -144,10 +144,10 @@ Now we have to put the whole thing together in a Personal Data Payload Cryptogra
 
 ```php
 use Patchlevel\EventSourcing\Cryptography\Store\CipherKeyStore;
-use Patchlevel\Hydrator\Cryptography\PersonalDataPayloadCryptographer;
+use Patchlevel\Hydrator\Cryptography\SensitiveDataPayloadCryptographer;
 
 /** @var CipherKeyStore $cipherKeyStore */
-$cryptographer = PersonalDataPayloadCryptographer::createWithDefaultSettings($cipherKeyStore);
+$cryptographer = SensitiveDataPayloadCryptographer::createWithDefaultSettings($cipherKeyStore);
 ```
 !!! tip
 
@@ -159,9 +159,9 @@ The last step is to integrate the cryptographer into the event store.
 
 ```php
 use Patchlevel\EventSourcing\Serializer\DefaultEventSerializer;
-use Patchlevel\Hydrator\Cryptography\PersonalDataPayloadCryptographer;
+use Patchlevel\Hydrator\Cryptography\SensitiveDataPayloadCryptographer;
 
-/** @var PersonalDataPayloadCryptographer $cryptographer */
+/** @var SensitiveDataPayloadCryptographer $cryptographer */
 DefaultEventSerializer::createFromPaths(
     [__DIR__ . '/Events'],
     cryptographer: $cryptographer,
@@ -177,9 +177,9 @@ And for the snapshot store.
 
 ```php
 use Patchlevel\EventSourcing\Snapshot\DefaultSnapshotStore;
-use Patchlevel\Hydrator\Cryptography\PersonalDataPayloadCryptographer;
+use Patchlevel\Hydrator\Cryptography\SensitiveDataPayloadCryptographer;
 
-/** @var PersonalDataPayloadCryptographer $cryptographer */
+/** @var SensitiveDataPayloadCryptographer $cryptographer */
 $snapshotStore = DefaultSnapshotStore::createDefault(
     [
         /* adapters... */
@@ -206,7 +206,7 @@ use Patchlevel\EventSourcing\Message\Message;
 use Patchlevel\Hydrator\Cryptography\Store\CipherKeyStore;
 
 #[Processor('delete_personal_data')]
-final class DeletePersonalDataProcessor
+final class DeleteSensitiveDataProcessor
 {
     public function __construct(
         private readonly CipherKeyStore $cipherKeyStore,
