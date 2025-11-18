@@ -18,6 +18,7 @@ use Patchlevel\EventSourcing\Store\Criteria\FromIndexCriterion;
 use Patchlevel\EventSourcing\Store\Criteria\FromPlayheadCriterion;
 use Patchlevel\EventSourcing\Store\Criteria\StreamCriterion;
 use Patchlevel\EventSourcing\Store\Criteria\ToIndexCriterion;
+use Patchlevel\EventSourcing\Store\Header\IndexHeader;
 use Patchlevel\EventSourcing\Store\Header\PlayheadHeader;
 use Patchlevel\EventSourcing\Store\Header\StreamNameHeader;
 use Patchlevel\EventSourcing\Store\InMemoryStore;
@@ -166,7 +167,20 @@ final class InMemoryStoreTest extends TestCase
 
         $messages = iterator_to_array($stream);
 
-        self::assertSame([$message3, $message4], $messages);
+        self::assertCount(2, $messages);
+        self::assertSame(
+            $message3->header(PlayheadHeader::class)->playhead,
+            $messages[0]->header(PlayheadHeader::class)->playhead,
+        );
+        self::assertSame(
+            3,
+            $messages[0]->header(IndexHeader::class)->index,
+        );
+        self::assertFalse($message4->hasHeader(PlayheadHeader::class));
+        self::assertSame(
+            4,
+            $messages[1]->header(IndexHeader::class)->index,
+        );
     }
 
     public function testLoadToIndex(): void
@@ -186,7 +200,23 @@ final class InMemoryStoreTest extends TestCase
 
         $messages = iterator_to_array($stream);
 
-        self::assertSame([$message1, $message2], $messages);
+        self::assertCount(2, $messages);
+        self::assertSame(
+            $message1->header(AggregateHeader::class)->playhead,
+            $messages[0]->header(AggregateHeader::class)->playhead,
+        );
+        self::assertSame(
+            1,
+            $messages[0]->header(IndexHeader::class)->index,
+        );
+        self::assertSame(
+            $message2->header(AggregateHeader::class)->playhead,
+            $messages[1]->header(AggregateHeader::class)->playhead,
+        );
+        self::assertSame(
+            2,
+            $messages[1]->header(IndexHeader::class)->index,
+        );
     }
 
     public function testLoadByStreamNameWithLikeAll(): void

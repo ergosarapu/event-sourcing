@@ -38,6 +38,7 @@ use const ARRAY_FILTER_USE_BOTH;
 
 final class InMemoryStore implements StreamStore
 {
+    /** @var array<0|positive-int, Message> */
     private array $messages = [];
 
     /** @param list<Message> $messages */
