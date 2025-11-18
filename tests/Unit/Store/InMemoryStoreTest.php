@@ -7,18 +7,24 @@ namespace Patchlevel\EventSourcing\Tests\Unit\Store;
 use DateTimeImmutable;
 use Patchlevel\EventSourcing\Aggregate\AggregateHeader;
 use Patchlevel\EventSourcing\Message\Message;
+use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
 use Patchlevel\EventSourcing\Store\ArchivedHeader;
 use Patchlevel\EventSourcing\Store\Criteria\AggregateIdCriterion;
 use Patchlevel\EventSourcing\Store\Criteria\AggregateNameCriterion;
 use Patchlevel\EventSourcing\Store\Criteria\ArchivedCriterion;
 use Patchlevel\EventSourcing\Store\Criteria\Criteria;
+use Patchlevel\EventSourcing\Store\Criteria\EventsCriterion;
 use Patchlevel\EventSourcing\Store\Criteria\FromIndexCriterion;
 use Patchlevel\EventSourcing\Store\Criteria\FromPlayheadCriterion;
 use Patchlevel\EventSourcing\Store\Criteria\StreamCriterion;
+use Patchlevel\EventSourcing\Store\Criteria\ToIndexCriterion;
 use Patchlevel\EventSourcing\Store\Header\PlayheadHeader;
 use Patchlevel\EventSourcing\Store\Header\StreamNameHeader;
 use Patchlevel\EventSourcing\Store\InMemoryStore;
+use Patchlevel\EventSourcing\Store\MissingEventRegistry;
 use Patchlevel\EventSourcing\Store\UnsupportedCriterion;
+use Patchlevel\EventSourcing\Tests\Unit\Fixture\Email;
+use Patchlevel\EventSourcing\Tests\Unit\Fixture\ProfileCreated;
 use Patchlevel\EventSourcing\Tests\Unit\Fixture\ProfileId;
 use Patchlevel\EventSourcing\Tests\Unit\Fixture\ProfileVisited;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -156,11 +162,31 @@ final class InMemoryStoreTest extends TestCase
 
         $store = new InMemoryStore([$message1, $message2, $message3, $message4]);
 
-        $stream = $store->load(new Criteria(new FromIndexCriterion(2)));
+        $stream = $store->load(new Criteria(new FromIndexCriterion(3)));
 
         $messages = iterator_to_array($stream);
 
         self::assertSame([$message3, $message4], $messages);
+    }
+
+    public function testLoadToIndex(): void
+    {
+        $message1 = (new Message(new ProfileVisited(ProfileId::fromString('1'))))
+            ->withHeader(new AggregateHeader('foo', '1', 1, new DateTimeImmutable()));
+        $message2 = (new Message(new ProfileVisited(ProfileId::fromString('2'))))
+            ->withHeader(new AggregateHeader('foo', '1', 2, new DateTimeImmutable()));
+        $message3 = (new Message(new ProfileVisited(ProfileId::fromString('3'))))
+            ->withHeader(new StreamNameHeader('foo-1'))
+            ->withHeader(new PlayheadHeader(3));
+        $message4 = new Message(new ProfileVisited(ProfileId::fromString('3')));
+
+        $store = new InMemoryStore([$message1, $message2, $message3, $message4]);
+
+        $stream = $store->load(new Criteria(new ToIndexCriterion(2)));
+
+        $messages = iterator_to_array($stream);
+
+        self::assertSame([$message1, $message2], $messages);
     }
 
     public function testLoadByStreamNameWithLikeAll(): void
@@ -194,6 +220,48 @@ final class InMemoryStoreTest extends TestCase
         $messages = iterator_to_array($stream);
 
         self::assertSame([$message1], $messages);
+    }
+
+    public function testLoadByEventName(): void
+    {
+        $message1 = (new Message(new ProfileCreated(ProfileId::fromString('1'), Email::fromString('s@b.de'))))
+            ->withHeader(new StreamNameHeader('foo'));
+        $message2 = (new Message(new ProfileVisited(ProfileId::fromString('2'))))
+            ->withHeader(new StreamNameHeader('bar'));
+        $message3 = new Message(new ProfileVisited(ProfileId::fromString('3')));
+
+        $store = new InMemoryStore(
+            [$message1, $message2, $message3],
+            new EventRegistry([
+                'profile_created' => ProfileCreated::class,
+                'profile_visited' => ProfileVisited::class,
+            ]),
+        );
+
+        $stream = $store->load(new Criteria(new EventsCriterion(['profile_created'])));
+        $messages = iterator_to_array($stream);
+
+        self::assertSame([$message1], $messages);
+
+        $stream = $store->load(new Criteria(new EventsCriterion(['profile_visited'])));
+        $messages = iterator_to_array($stream);
+
+        self::assertSame([$message2, $message3], $messages);
+        self::assertSame([], iterator_to_array($store->load(new Criteria(new EventsCriterion(['profile_deleted'])))));
+    }
+
+    public function testLoadByEventNameWithoutRegistry(): void
+    {
+        $message1 = (new Message(new ProfileCreated(ProfileId::fromString('1'), Email::fromString('s@b.de'))))
+            ->withHeader(new StreamNameHeader('foo'));
+        $message2 = (new Message(new ProfileVisited(ProfileId::fromString('2'))))
+            ->withHeader(new StreamNameHeader('bar'));
+        $message3 = new Message(new ProfileVisited(ProfileId::fromString('3')));
+
+        $store = new InMemoryStore([$message1, $message2, $message3]);
+
+        $this->expectException(MissingEventRegistry::class);
+        $store->load(new Criteria(new EventsCriterion(['profile_created'])));
     }
 
     public function testLoadUnsupportedCriterion(): void

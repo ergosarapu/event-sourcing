@@ -8,19 +8,22 @@ use Closure;
 use Patchlevel\EventSourcing\Aggregate\AggregateHeader;
 use Patchlevel\EventSourcing\Message\HeaderNotFound;
 use Patchlevel\EventSourcing\Message\Message;
+use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
 use Patchlevel\EventSourcing\Store\Criteria\AggregateIdCriterion;
 use Patchlevel\EventSourcing\Store\Criteria\AggregateNameCriterion;
 use Patchlevel\EventSourcing\Store\Criteria\ArchivedCriterion;
 use Patchlevel\EventSourcing\Store\Criteria\Criteria;
+use Patchlevel\EventSourcing\Store\Criteria\EventsCriterion;
 use Patchlevel\EventSourcing\Store\Criteria\FromIndexCriterion;
 use Patchlevel\EventSourcing\Store\Criteria\FromPlayheadCriterion;
 use Patchlevel\EventSourcing\Store\Criteria\StreamCriterion;
+use Patchlevel\EventSourcing\Store\Criteria\ToIndexCriterion;
+use Patchlevel\EventSourcing\Store\Header\IndexHeader;
 use Patchlevel\EventSourcing\Store\Header\PlayheadHeader;
 use Patchlevel\EventSourcing\Store\Header\StreamNameHeader;
 
 use function array_filter;
 use function array_map;
-use function array_push;
 use function array_reverse;
 use function array_slice;
 use function array_unique;
@@ -35,10 +38,14 @@ use const ARRAY_FILTER_USE_BOTH;
 
 final class InMemoryStore implements StreamStore
 {
-    /** @param array<positive-int|0, Message> $messages */
+    private array $messages = [];
+
+    /** @param list<Message> $messages */
     public function __construct(
-        private array $messages = [],
+        array $messages = [],
+        private readonly EventRegistry|null $eventRegistry = null,
     ) {
+        $this->save(...$messages);
     }
 
     public function load(
@@ -71,7 +78,12 @@ final class InMemoryStore implements StreamStore
 
     public function save(Message ...$messages): void
     {
-        array_push($this->messages, ...$messages);
+        $count = count($this->messages);
+
+        foreach ($messages as $message) {
+            $count++;
+            $this->messages[] = $message->withHeader(new IndexHeader($count));
+        }
     }
 
     /**
@@ -134,9 +146,11 @@ final class InMemoryStore implements StreamStore
             return $this->messages;
         }
 
+        $eventRegistry = $this->eventRegistry;
+
         return array_filter(
             $this->messages,
-            static function (Message $message, int $index) use ($criteria): bool {
+            static function (Message $message) use ($criteria, $eventRegistry): bool {
                 foreach ($criteria->all() as $criterion) {
                     switch ($criterion::class) {
                         case AggregateIdCriterion::class:
@@ -222,7 +236,35 @@ final class InMemoryStore implements StreamStore
 
                             break;
                         case FromIndexCriterion::class:
+                            try {
+                                $index = $message->header(IndexHeader::class)->index;
+                            } catch (HeaderNotFound) {
+                                return false;
+                            }
+
                             if ($index < $criterion->fromIndex) {
+                                return false;
+                            }
+
+                            break;
+                        case ToIndexCriterion::class:
+                            try {
+                                $index = $message->header(IndexHeader::class)->index;
+                            } catch (HeaderNotFound) {
+                                return false;
+                            }
+
+                            if ($index > $criterion->toIndex) {
+                                return false;
+                            }
+
+                            break;
+                        case EventsCriterion::class:
+                            if ($eventRegistry === null) {
+                                throw new MissingEventRegistry($criterion::class);
+                            }
+
+                            if (!in_array($eventRegistry->eventName($message->event()::class), $criterion->events)) {
                                 return false;
                             }
 
